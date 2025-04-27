@@ -1,0 +1,60 @@
+name: Create Registry Issue
+
+on:
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  create-registry-issue:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+          echo "Latest tag: $latest_tag"
+          echo "tag=$latest_tag" >> $GITHUB_OUTPUT
+
+      - name: Prepare issue content
+        id: prepare_issue
+        run: |
+          MOD_NAME="MY_MOD_NAME"  # <-- Replace this
+          MOD_REPO_NAME="MY_MOD_REPO"  # <-- Replace this
+          USERNAME="YOUR_GITHUB_USERNAME"  # <-- Replace this
+
+          MOD_VERSION="${{ steps.get_tag.outputs.tag }}"
+
+          ISSUE_TITLE="[RELEASE] ${MOD_NAME} Version ${MOD_VERSION}"
+          ISSUE_BODY=$(cat <<EOF
+          Hello, I have created a new mod release for "${MOD_NAME}" with version "${MOD_VERSION}"
+          
+          \`\`\`json
+          {
+            "action": "add_package_release",
+            "repo_url": "https://github.com/${USERNAME}/${MOD_REPO_NAME}",
+            "release_tag": "${MOD_VERSION}"
+          }
+          \`\`\`
+          EOF
+          )
+
+          echo "issue_title=$ISSUE_TITLE" >> $GITHUB_OUTPUT
+          echo "issue_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$ISSUE_BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create issue in C2ModRegistry
+        env:
+          GITHUB_TOKEN: ${{ secrets.C2MODREGISTRY_PAT }}  # <-- Personal Access Token stored in secrets
+        run: |
+          curl -X POST https://api.github.com/repos/Chiv2-Community/C2ModRegistry/issues \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          -d "$(jq -n \
+            --arg title "${{ steps.prepare_issue.outputs.issue_title }}" \
+            --arg body "${{ steps.prepare_issue.outputs.issue_body }}" \
+            --argjson labels '["mod-release"]' \
+            '{title: $title, body: $body, labels: $labels}')"
