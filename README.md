@@ -41,6 +41,9 @@ New to modding Chivalry 2? Start with the **[ArgonSDK Field Guide](https://knuts
 > [!NOTE]
 > The `gh-pages` branch only exists after the first successful `ci` run. Until then the branch list in the Pages settings is empty.
 
+> [!TIP]
+> Pages and the repository website can be set up **automatically** with a `PAGES_PAT` secret, so you can skip step 3 and the manual website setting. See [Creating the `PAGES_PAT` token](#pages-pat).
+
 <details>
 <summary>Pages not working, or want it automated? (optional)</summary>
 
@@ -51,6 +54,8 @@ New to modding Chivalry 2? Start with the **[ArgonSDK Field Guide](https://knuts
 - The [`ci` workflow](__REPO_URL__/actions/workflows/ci.yml) also tries to enable Pages itself on the first run, and the [`init` workflow](__REPO_URL__/actions/workflows/init.yml) sets your site as the repository website (the link in the "About" box on the [repository page](__REPO_URL__)). Both only work if you add a `PAGES_PAT` secret with a token that can administer the repository (see below). Without it, set the website under the gear icon in the "About" box of the [repository page](__REPO_URL__) by hand.
 
 </details>
+
+<a name="pages-pat"></a>
 
 <details>
 <summary>Creating the <code>PAGES_PAT</code> token (optional)</summary>
@@ -120,7 +125,7 @@ Releases are submitted to the [C2ModRegistry](https://github.com/Chiv2-Community
 
 2. The **Create Registry Issue** workflow ([`release_reg.yml`](__REPO_URL__/actions/workflows/release_reg.yml)) starts on its own and opens a registration issue in the registry, so the maintainers can review and merge the new version.
 
-This requires a repository secret named `C2MODREGISTRY_PAT`, a personal access token that is allowed to create issues in `Chiv2-Community/C2ModRegistry`. Add it on the [Actions secrets page](__REPO_URL__/settings/secrets/actions). Without it the workflow skips the submission and shows a notice instead of failing.
+This requires a repository secret named `C2MODREGISTRY_PAT`, a personal access token that is allowed to create issues in `Chiv2-Community/C2ModRegistry`. Add it on the [Actions secrets page](__REPO_URL__/settings/secrets/actions), created the same way as the [`PAGES_PAT` token](#pages-pat). Without it the workflow skips the submission and shows a notice instead of failing.
 
 <details>
 <summary>How it works and what to do if it fails</summary>
