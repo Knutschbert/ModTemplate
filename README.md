@@ -38,6 +38,9 @@ New to modding Chivalry 2? Start with the **[ArgonSDK Field Guide](https://knuts
 3. **Enable GitHub Pages** once. After the first `ci` run has finished successfully (check the [Actions tab](__REPO_URL__/actions)), open the **[Pages settings](__REPO_URL__/settings/pages)**, choose **Deploy from a branch**, select the branch `gh-pages` with folder `/ (root)` and save. Your site will be available at [__SITE_URL__](__SITE_URL__) a minute later.
 4. **Publish a release** (see [Releasing](#releasing)) from the [new release page](__REPO_URL__/releases/new).
 
+> [!NOTE]
+> The `gh-pages` branch only exists after the first successful `ci` run. Until then the branch list in the Pages settings is empty.
+
 <details>
 <summary>Pages not working, or want it automated? (optional)</summary>
 
@@ -78,6 +81,9 @@ Classic alternative: [generate a classic token](https://github.com/settings/toke
 - If `init` cannot push, check that [workflow permissions](__REPO_URL__/settings/actions) are set to "Read and write permissions".
 - Fine-grained tokens expire. When one does, the Pages and website steps stop working quietly, so create a new token and update the secret.
 
+> [!WARNING]
+> Treat tokens like passwords. Never commit them to the repository, only store them as repository secrets.
+
 </details>
 
 ## Editing the docs with Obsidian
@@ -101,7 +107,17 @@ The [`docs/`](__REPO_URL__/tree/main/docs) folder is a plain Markdown folder, so
 
 Releases are submitted to the [C2ModRegistry](https://github.com/Chiv2-Community/C2ModRegistry) automatically:
 
-1. Publish a **GitHub release** with a version tag (for example `v1.0.0`) from the [new release page](__REPO_URL__/releases/new) of this repository. The release must contain exactly one `.pak` file. Pre-releases are not submitted.
+1. Publish a **GitHub release** with a version tag (for example `v1.0.0`) from the [new release page](__REPO_URL__/releases/new) of this repository, and upload your `.pak` file as a release asset. Pre-releases are not submitted.
+
+   > [!IMPORTANT]
+   > The release must contain exactly one `.pak` file, and the tag must be a semantic version.
+
+   Or use the command line (needs the [GitHub CLI](https://cli.github.com/)):
+
+   ```sh
+   gh release create v1.0.0 path/to/YourMod.pak --title "v1.0.0" --notes "First release"
+   ```
+
 2. The **Create Registry Issue** workflow ([`release_reg.yml`](__REPO_URL__/actions/workflows/release_reg.yml)) starts on its own and opens a registration issue in the registry, so the maintainers can review and merge the new version.
 
 This requires a repository secret named `C2MODREGISTRY_PAT`, a personal access token that is allowed to create issues in `Chiv2-Community/C2ModRegistry`. Add it on the [Actions secrets page](__REPO_URL__/settings/secrets/actions). Without it the workflow skips the submission and shows a notice instead of failing.
@@ -114,6 +130,30 @@ This requires a repository secret named `C2MODREGISTRY_PAT`, a personal access t
 - The workflow uses the registry's [`automated-publish`](https://github.com/Chiv2-Community/zero-infra-mod-registry/blob/v1/docs/plugin/release-requests.md) action, which checks the release before opening the issue.
 - If the registration fails, fix the release and reply `retry` on the registry issue.
 - You can also [run the workflow by hand](__REPO_URL__/actions/workflows/release_reg.yml), choosing the release tag in the "Use workflow from" dropdown.
+
+</details>
+
+## Workflows and secrets
+
+| Workflow | Runs when | What it does | Needs |
+|---|---|---|---|
+| [`init`](__REPO_URL__/actions/workflows/init.yml) | First push to `main` | Fills in name, description and links, sets the repository website | `PAGES_PAT` (optional) |
+| [`ci`](__REPO_URL__/actions/workflows/ci.yml) | Every push to `main` | Builds and deploys the docs site to `gh-pages` | `PAGES_PAT` (optional, enables Pages) |
+| [`release_reg`](__REPO_URL__/actions/workflows/release_reg.yml) | A release is published | Opens a registration issue in the C2ModRegistry | `C2MODREGISTRY_PAT` |
+
+<details>
+<summary>How it fits together</summary>
+
+<br>
+
+```mermaid
+flowchart LR
+    A[Create repo from template] --> B[init fills placeholders]
+    B --> C[ci deploys docs to gh-pages]
+    C --> D[Enable Pages once]
+    E[Publish release with .pak] --> F[release_reg opens registry issue]
+    F --> G[Maintainers review and merge]
+```
 
 </details>
 
