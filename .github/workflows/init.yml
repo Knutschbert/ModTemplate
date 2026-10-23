@@ -1,0 +1,51 @@
+name: Init from template
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  init:
+    # never run in the template repo itself
+    if: ${{ !github.event.repository.is_template }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip if already initialized
+        id: check
+        run: |
+          if [ -n "$(jq -r '.name // ""' mod.json)" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fill mod.json and README.md
+        if: steps.check.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: ${{ github.event.repository.name }}
+          OWNER: ${{ github.repository_owner }}
+          URL: ${{ github.event.repository.html_url }}
+          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          REPO_URL: ${{ github.event.repository.html_url }}
+        run: |
+          DESC=$(gh api "repos/${{ github.repository }}" --jq '.description // ""')
+          export DESC
+
+          jq --arg name "$NAME" --arg owner "$OWNER" --arg url "$URL" --arg desc "$DESC" --arg site_url "$SITE_URL" --arg repo_url "$REPO_URL" \
+            '.name=$name | .authors=[$owner] | .repo_url=$url | .description=$desc | .image_url=""' \
+            mod.json > mod.tmp && mv mod.tmp mod.json
+
+          perl -pi -e 's/__NAME__/$ENV{NAME}/g; s/__DESCRIPTION__/$ENV{DESC}/g; s/__SITE_URL__/$ENV{SITE_URL}/g; s/__REPO_URL__/$ENV{REPO_URL}/g' README.md
+
+      - name: Commit
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mod.json README.md mkdocs.yml
+          git commit -m "Initialize from template"
+          git push

@@ -24,9 +24,10 @@ jobs:
       - name: Prepare issue content
         id: prepare_issue
         run: |
-          MOD_NAME="MY_MOD_NAME"  # <-- Replace this
-          MOD_REPO_NAME="MY_MOD_REPO"  # <-- Replace this
-          USERNAME="YOUR_GITHUB_USERNAME"  # <-- Replace this
+          MOD_NAME="${{ github.event.repository.name }}"
+          MOD_REPO_NAME="${{ github.event.repository.name }}"
+          USERNAME="${{ github.repository_owner }}"
+
 
           MOD_VERSION="${{ steps.get_tag.outputs.tag }}"
 

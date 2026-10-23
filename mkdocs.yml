@@ -1,4 +1,8 @@
-site_name: obsidian-mkdocs template
+site_name: __NAME__
+site_description: __DESCRIPTION__
+site_url: __SITE_URL__
+repo_url: __REPO_URL__
+
 
 theme:
     name: 'material'
