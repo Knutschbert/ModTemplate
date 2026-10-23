@@ -60,3 +60,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run ci.yml --ref "${{ github.ref_name }}"
+
+      # editing repository settings needs admin rights, which the default token does not have,
+      # so this only works if the PAGES_PAT secret is set
+      - name: Set repository website
+        if: steps.check.outputs.needed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.PAGES_PAT }}
+          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::notice::PAGES_PAT is not set, skipping. Set the website URL ($SITE_URL) in the repository settings manually."
+            exit 0
+          fi
+          gh api -X PATCH "repos/${{ github.repository }}" -f homepage="$SITE_URL"
