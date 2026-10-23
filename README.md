@@ -22,7 +22,10 @@ New to modding Chivalry 2? Start with the **[ArgonSDK Field Guide](https://knuts
 
 1. **Clone** this repository and build your mod following the [Field Guide](https://knutschbert.github.io/ArgonSDK-FieldGuide/).
 2. **Write your docs** in the [`docs/`](docs) folder (see below). The site is rebuilt and published by the `ci` workflow on every push to `main`.
-3. Make sure GitHub Pages is enabled (`Settings > Pages`, source: the `gh-pages` branch). The `ci` workflow tries to enable it on the first run. If that fails, add a `PAGES_PAT` secret with a token that has Pages write access, or enable it by hand.
+3. **Enable GitHub Pages** once. After the first `ci` run has finished successfully (check the [Actions tab](__REPO_URL__/actions)), the `gh-pages` branch exists. Open the **[Pages settings](__REPO_URL__/settings/pages)**, choose **Deploy from a branch**, then select the branch `gh-pages` with folder `/ (root)` and save. Your site will be available at [__SITE_URL__](__SITE_URL__) a minute later.
+    - The `ci` workflow also tries to enable Pages itself on the first run. That only works if you add a `PAGES_PAT` secret with a token that has Pages write access.
+    - If the branch list is empty, the first `ci` run has not succeeded yet. Check the Actions tab, or run the `ci` workflow by hand.
+    - Tip: when creating your repository from the template, copy only the `main` branch. The `gh-pages` branch is created for you.
 4. **Publish a release** (see [Releasing](#releasing)).
 
 ## Editing the docs with Obsidian
